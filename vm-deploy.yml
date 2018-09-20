@@ -1,0 +1,47 @@
+---
+- hosts: cluster2 
+  gather_facts: false
+  connection: local
+  tasks: 
+  - name: Create a virtual machine from a template
+    vmware_guest:
+       hostname: "{{ vm_vsphere_host }}"
+       username: "{{ vm_vsphere_user }}"
+       password: "{{ vm_vsphere_password }}"
+       validate_certs: False
+       folder:  "{{vm_folder}}"
+       datacenter: "{{vm_datacenter }}"
+       cluster: "{{ vm_cluster }}"
+       linked_clone: no 
+       resource_pool: "{{ vm_resource_pool }}"
+       name: "{{ inventory_hostname }}" 
+       state: poweredon
+       guest_id: rhel7_64Guest
+       template: "{{vm_vsphere_template}}"
+       disk:
+       - size_gb: 100
+         type: thin
+         datastore: "{{ vm_datastore }}"
+       networks:
+       - name: "{{ vm_network }}"
+         ip: "{{ ansible_host }}"
+         netmask: "{{ vm_netmask}}"
+         gateway: "{{ vm_gw }}"
+         dns_servers:
+         - 10.72.86.7
+         - 8.8.8.8 
+       - name: K8s_CLUSTER_01
+       wait_for_ip_address: yes
+    delegate_to: localhost
+    register: deploy
+
+  - name: move to single host 
+    vmware_vmotion:
+      hostname: "{{ vm_vsphere_host }}"
+      username: "{{ vm_vsphere_user }}"
+      password: "{{ vm_vsphere_password }}"
+      vm_name: "{{inventory_hostname}}"
+      destination_host: "{{ vm_esx_host }}"
+      validate_certs: False
+    delegate_to: localhost
+    register: vmotion

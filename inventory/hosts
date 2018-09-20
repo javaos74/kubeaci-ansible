@@ -1,0 +1,40 @@
+[cluster2]
+k8s2master ansible_host="10.72.78.135" node_ip="192.168.11.15" node_netmask="255.255.255.0" node_gw="192.168.11.1" 
+k8s2node01 ansible_host="10.72.78.134" node_ip="192.168.11.16" node_netmask="255.255.255.0" node_gw="192.168.11.1"
+k8s2node02 ansible_host="10.72.78.137" node_ip="192.168.11.17" node_netmask="255.255.255.0" node_gw="192.168.11.1"
+
+[cluster1]
+pass01 ansible_host="10.72.78.131" node_ip="192.168.11.11" node_netmask="255.255.255.0" node_gw="192.168.11.1"
+pass02 ansible_host="10.72.78.132" node_ip="192.168.11.12" node_netmask="255.255.255.0" node_gw="192.168.11.1"
+pass03 ansible_host="10.72.78.133" node_ip="192.168.11.13" node_netmask="255.255.255.0" node_gw="192.168.11.1"
+
+[all:vars]
+#ansible_ssh_private_key_file = ~/.ssh/id_rsa
+
+[all:vars]
+MTU="1600"
+SVC_NIC="ens192"
+INFRA_VLAN="4093"
+KUBEAPI_VLAN="4001"
+CLUSTER_DNS="192.168.15.10"
+APIC_IP="10.72.86.21"
+DNS1="10.72.86.7"
+DNS2="8.8.8.8"
+vm_vsphere_host="10.72.86.43"
+vm_vsphere_user="administrator@vsphere.local"
+vm_vsphere_password='!234Qwer'
+vm_vsphere_datacenter="DC1"
+vm_vsphere_template="CentOS_MASTER"
+vm_esx_host="10.72.86.35"
+vm_datacenter="DC1"
+vm_datastore="DC1-PURE-VOL2-5T"
+vm_cluster="02.B200M3-CLUSTER"
+vm_memory="8192"
+vm_folder="CentOS7"
+vm_network="VM Network"
+vm_notes="Created by Ansible for Kubernetes"
+vm_gw="10.72.78.1"
+vm_netmask="255.255.255.0"
+dumpfacts="false"
+vm_resource_pool="CentOS-K8s-POOL-01"
+
