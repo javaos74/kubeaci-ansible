@@ -6,5 +6,5 @@
       user_home: /home/cisco
 #     ansible_python_interpreter: /Users/hyungsok/mypy27/bin/python
     roles:
-#      - apic 
+      - aci
       - kubernetes

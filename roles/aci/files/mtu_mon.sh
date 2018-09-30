@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# mut_mon       check interface mtu and set 1600
+#
+# chkconfig: 2345 10 90
+# description: 
+#
+### BEGIN INIT INFO
+# Provides: $network
+# Should-Start: 
+# Short-Description: keep mtu size 1600
+# Description: set interface link mtu 1600
+### END INIT INFO
+while [ 1 ]; 
+do
+    ip link set mtu {{MTU}} dev {{SVC_NIC}}
+    ip link set mtu {{MTU}} dev {{SVC_NIC}}.{{KUBEAPI_VLAN}}
+    ip link set mtu {{MTU}} dev {{SVC_NIC}}.{{INFRA_VLAN}}
+    sleep 1
+done

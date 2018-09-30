@@ -3,7 +3,7 @@
   gather_facts: false
   connection: local
   tasks: 
-  - name: Create a virtual machine from a template
+  - name: delete virtual machines 
     vmware_guest:
        hostname: "{{ vm_vsphere_host }}"
        username: "{{ vm_vsphere_user }}"

@@ -1,0 +1,109 @@
+---
+  - name: Get the MAC address
+    debug: msg="{{ hostvars[inventory_hostname].ansible_ens192.macaddress }}"
+    register: macaddr
+
+  - name: 802.1Q enable 
+    become: yes
+    command: modprobe --first-time 8021q
+    ignore_errors: true
+
+  - name: configure APIC Infra VLAN 
+    become: yes
+    template: src=nic_infra_vlan.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{SVC_NIC}}.{{INFRA_VLAN}}
+
+  - name: update dhcp config 
+    become: yes
+    template: src=dhcp.j2 dest=/etc/dhcp/dhclient-{{SVC_NIC}}.{{INFRA_VLAN}}.conf 
+    when: true 
+
+  - name: configure fabric facing interfaces
+    become: yes
+    template: src=nic_kubeapi_vlan.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{SVC_NIC}}.{{KUBEAPI_VLAN}}
+
+  - name: configure fabric mohter interface
+    become: yes
+    template: src=nic_fabric.j2 dest=/etc/sysconfig/network-scripts/ifcfg-{{SVC_NIC}}
+
+  - name: update route for infra 
+    become: yes
+    template: src=route_infra.j2 dest=/etc/sysconfig/network-scripts/route-{{SVC_NIC}}.{{INFRA_VLAN}}
+
+  - name: update route for kubeapi 
+    become: yes
+    template: src=route_kubeapi.j2 dest=/etc/sysconfig/network-scripts/route-{{SVC_NIC}}.{{KUBEAPI_VLAN}}
+
+  - name: configure resolv.conf for oob 
+    become: yes
+    template: src=resolv_conf.j2 dest=/etc/resolv.conf
+
+  - name: copy acc-privisioning utility 
+    become: yes
+    copy: src=acc-provision-1.9.0-28.el7.x86_64.rpm  dest=/tmp
+    tags:
+      - master
+
+  - name: install acc-provision utility 
+    become: yes
+    yum: name=/tmp/acc-provision-1.9.0-28.el7.x86_64.rpm state=present
+#    when: "{{ 'master' in inventory_hostname }}"
+    tags:
+      - master
+
+  - name: download pip from bootstrap.pypa.io/get-pip.py
+    copy: src=get-pip.py dest=/tmp/get-pip.py
+    tags:
+      - master
+
+  - name: install pip
+    become: yes
+    shell: python /tmp/get-pip.py 
+    tags:
+      - master
+  
+  - name: uninstall firewalld
+    become: yes
+    yum: name=firewalld state=absent
+
+  - name: copy hosts file 
+    become: yes
+    copy: src=hosts dest=/etc/hosts 
+
+  - name: update localhost /etc/hosts
+    become: yes
+    shell : |
+       echo '127.0.0.1    {{inventory_hostname}}' >> /etc/hosts
+
+  - name: stop interfaces 
+    become: yes
+    command: ifdown {{item}}
+    with_items:
+      - "{{SVC_NIC}}.{{INFRA_VLAN}}"
+      - "{{SVC_NIC}}.{{KUBEAPI_VLAN}}"
+      - "{{SVC_NIC}}"
+
+  - name: start interfaces
+    become: yes
+    command: ifup {{ item }}
+    with_items:
+      - "{{SVC_NIC}}"
+      - "{{SVC_NIC}}.{{KUBEAPI_VLAN}}"
+      - "{{SVC_NIC}}.{{INFRA_VLAN}}"
+    ignore_errors: true
+    when: true
+
+  - name: copy mtu monitor script 
+    become: yes
+    template: src=mtu_mon.j2 dest=/etc/init.d/mtu_mon.sh mode=0700 force=yes
+    tags:
+      - test 
+  
+  - name: chkconf 
+    become: yes
+    shell: |
+       cd /etc/init.d
+       chkconfig --add mtu_mon.sh 
+       bash -s mtu_mon.sh
+    when: false
+    tags:
+      - test
