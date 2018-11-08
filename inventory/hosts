@@ -8,6 +8,12 @@ paas01 ansible_host="10.72.73.111" node_ip="192.168.11.11" node_netmask="255.255
 paas02 ansible_host="10.72.73.112" node_ip="192.168.11.12" node_netmask="255.255.255.0" node_gw="192.168.11.1"
 paas03 ansible_host="10.72.73.113" node_ip="192.168.11.13" node_netmask="255.255.255.0" node_gw="192.168.11.1"
 
+[sds1]
+여기에 baremetal 추가 
+ansible_host 주소와 node_ip 주소가 같아도 둘다 적어야 함 
+
+[sds2]
+
 [all:vars]
 #ansible_ssh_private_key_file = ~/.ssh/id_rsa
 

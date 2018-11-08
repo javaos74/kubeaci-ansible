@@ -1,40 +1,45 @@
 ---
 
+  - name: install wget 
+    become: yes
+    yum: name={{item}} state=present
+    with_items:
+      - wget 
+      - redhat-lsb-core 
+
   - name: setup lldp repo
     become: yes
     shell: |
        cd /etc/yum.repos.d/
        wget https://download.opensuse.org/repositories/home:vbernat/CentOS_7/home:vbernat.repo
-    when: true 
+    when: inventory_hostname == "paas03" 
 
   - name: install dependency 
     become: yes
     yum: name={{item}} state=present
     with_items:
-      - redhat-lsb-core
       - lldpd
-
-
 
   - name: copy tet-agent rpm
     become: yes
     copy: src=tet-sensor-3.0.1.16-1.el7-tuvok.sensor.x86_64.rpm dest=/tmp/tet-sensor-3.0.1.16-1.el7-tuvok.sensor.x86_64.rpm
-    when: true 
+    when: inventory_hostname == "paas03" 
 
   - name: install tetration agent
     become: yes
     yum: name=/tmp/tet-sensor-3.0.1.16-1.el7-tuvok.sensor.x86_64.rpm state=present
-    when: true
+    when: inventory_hostname == "paas03" 
 
   - name: configure user.cfg
     copy: src=user.cfg dest=/usr/local/tet
-    when: true 
+    when: inventory_hostname == "paas03" 
 
   - name: start lldpd and restart tet-sensor 
     service: name={{item}} state=started enabled=yes 
     with_items:
       - lldpd 
       - tet-sensor
+    when: inventory_hostname == "paas03" 
 
   - name: add pub key 
     become: no
@@ -43,3 +48,4 @@
        echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC44Al/UL4HppkHuWlSqQkykGpGeWRE/UGGxuYgCSW0Zu594ME5+MKKFJfa/WZhnVMjW3YA2Sa7GxJtDtmAd0alMbtE8m7p3bR5s2HZzKwb7jcXgk2vSJJ1W02fnZFqfihsJj2ViklUlU+ZIO0iqsy1TkR/fgHD1Y38YO8ZrZurJX4sYq9Scm5WSR59wyFzuPfrjzzc0ezG6TI0kArYQGBYDI1JqWqQ8OL7ehIHTpgbOnZo44T+bkDegaWECzTELdHEM9R0hxEGfZui2hW1CsQl3jWI0XHygkYe01awPfgt3Th93Kp+nvBK220HTdcqCNUMGcqU+ANSw2GrWbfE3COF hyungsok@HYUNGSOK-M-M24P" >> {{user_home}}/.ssh/authorized_keys
        chmod 700 {{user_home}}/.ssh
        chmod 600 {{user_home}}/.ssh/authorized_keys
+    when: inventory_hostname == "paas03"
